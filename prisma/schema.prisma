@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Patient {
+  id        String   @id @default(uuid())
+  name      String
+  birthDate String
+
+  medicalRecords MedicalRecord[]
+
+  address Address?
+}
+
+model Address {
+  id         String  @id @default(uuid())
+  street     String
+  number     String
+  postalCode String
+  complement String?
+  patientId  String  @unique
+
+  patient Patient @relation(fields: [patientId], references: [id])
+}
+
+model MedicalRecord {
+  id        String              @id @default(uuid())
+  status    MedicalRecordStatus @default(IN_PROGRESS)
+  patientId String
+
+  patient Patient @relation(fields: [patientId], references: [id])
+
+  medicalPrescription MedicalPrescription[]
+  followUp            FollowUp[]
+  examinations        Examination[]
+}
+
+model FollowUp {
+  id              String   @id @default(uuid())
+  date            String
+  comment         String
+  medicalRecordId String
+
+  medicalRecord MedicalRecord @relation(fields: [medicalRecordId], references: [id])
+}
+
+model MedicalPrescription {
+  id              String   @id @default(uuid())
+  medicine        String
+  dose            String
+  startDate       String
+  endDate         String?
+  medicalRecordId String
+
+  medicalRecord MedicalRecord @relation(fields: [medicalRecordId], references: [id])
+}
+
+enum MedicalRecordStatus {
+  IN_PROGRESS
+  FINISHED
+}
+
+model Examination {
+  id              String    @id @default(uuid())
+  name            String
+  requestDate     String
+  resultDate      String?
+  result          String?
+  clinicalReport  String?
+  medicalRecordId String
+
+  medicalRecord MedicalRecord @relation(fields: [medicalRecordId], references: [id])
+}
